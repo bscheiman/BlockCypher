@@ -52,6 +52,9 @@
     <Compile Include="Blockcypher.cs" />
     <Compile Include="Objects\AddressInfo.cs" />
     <Compile Include="Objects\Balance.cs" />
+    <Compile Include="Objects\SatoshiConverter.cs" />
+    <Compile Include="Objects\Satoshi.cs" />
+    <Compile Include="Objects\TxReference.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

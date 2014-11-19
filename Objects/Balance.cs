@@ -1,4 +1,5 @@
 ﻿#region
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 #endregion
@@ -8,25 +9,20 @@ namespace BlockCypher.Objects {
         [JsonProperty("address")]
         public string Address { get; set; }
 
-        [JsonProperty("balance")]
-        public int Balance { get; set; }
+        [JsonProperty("balance"), JsonConverter(typeof (SatoshiConverter))]
+        public Satoshi Balance { get; set; }
 
-        public decimal BalanceAsBTC {
-            get { return (decimal) Balance / 100000000; }
-        }
-
-        [JsonProperty("final_balance")]
-        public int FinalBalance { get; set; }
-
-        public decimal FinalBalanceAsBTC {
-            get { return (decimal) FinalBalance / 100000000; }
-        }
+        [JsonProperty("final_balance"), JsonConverter(typeof (SatoshiConverter))]
+        public Satoshi FinalBalance { get; set; }
 
         [JsonProperty("final_n_tx")]
         public int FinalTx { get; set; }
 
         [JsonProperty("n_tx")]
-        public int Transactions { get; set; }
+        public int TotalTransactions { get; set; }
+
+        [JsonProperty("txrefs")]
+        public IList<TxReference> Transactions { get; set; }
 
         [JsonProperty("tx_url")]
         public string TxUrl { get; set; }

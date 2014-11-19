@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+ <package>
+   <metadata>
+     <id>BlockCypher</id>
+     <version>$version$</version>
+     <authors>Boris Scheiman</authors>
+     <projectUrl>https://github.com/bscheiman/BlockCypher</projectUrl>
+     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+     <description>.NET wrapper for Blockcypher</description>
+     <summary>http://www.blockcypher.com</summary>
+     <language>en-US</language>
+   </metadata>
+</package>
