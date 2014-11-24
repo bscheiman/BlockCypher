@@ -25,6 +25,7 @@ namespace BlockCypher.Objects {
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+            writer.WriteValue((long) ((Satoshi) value).Value);
         }
     }
 }

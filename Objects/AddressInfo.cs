@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 #endregion
 
 namespace BlockCypher.Objects {
-    public class AddressInfo {
+    public class AddressInfo : BaseObject {
         [JsonProperty("address")]
         public string Address { get; set; }
 
@@ -13,5 +13,14 @@ namespace BlockCypher.Objects {
 
         [JsonProperty("public")]
         public string Public { get; set; }
+
+        public AddressInfo() {
+        }
+
+        public AddressInfo(string address, string @private, string @public) {
+            Address = address;
+            Private = @private;
+            Public = @public;
+        }
     }
 }

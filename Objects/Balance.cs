@@ -5,14 +5,14 @@ using Newtonsoft.Json;
 #endregion
 
 namespace BlockCypher.Objects {
-    public class AddressBalance {
+    public class AddressBalance : BaseObject {
         [JsonProperty("address")]
         public string Address { get; set; }
 
-        [JsonProperty("balance"), JsonConverter(typeof (SatoshiConverter))]
+        [JsonProperty("balance")]
         public Satoshi Balance { get; set; }
 
-        [JsonProperty("final_balance"), JsonConverter(typeof (SatoshiConverter))]
+        [JsonProperty("final_balance")]
         public Satoshi FinalBalance { get; set; }
 
         [JsonProperty("final_n_tx")]

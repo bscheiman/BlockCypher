@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 #endregion
 
 namespace BlockCypher.Objects {
-    public class TxReference {
+    public class TxReference : BaseObject {
         [JsonProperty("block_height")]
         public int BlockHeight { get; set; }
 
@@ -33,7 +33,7 @@ namespace BlockCypher.Objects {
         [JsonProperty("tx_output_n")]
         public int TxOutputN { get; set; }
 
-        [JsonProperty("value"), JsonConverter(typeof(SatoshiConverter))]
+        [JsonProperty("value")]
         public Satoshi Value { get; set; }
     }
 }

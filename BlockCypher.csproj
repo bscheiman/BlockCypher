@@ -30,9 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <HintPath>packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="bscheiman.Common">
       <HintPath>packages\bscheiman.Common.1.0.16\lib\net40\bscheiman.Common.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Build.Tasks.v4.0" />
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -50,11 +54,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blockcypher.cs" />
+    <Compile Include="Endpoint.cs" />
+    <Compile Include="Helpers\Base58Helper.cs" />
     <Compile Include="Objects\AddressInfo.cs" />
     <Compile Include="Objects\Balance.cs" />
+    <Compile Include="Objects\BaseObject.cs" />
+    <Compile Include="Objects\Faucet.cs" />
     <Compile Include="Objects\SatoshiConverter.cs" />
     <Compile Include="Objects\Satoshi.cs" />
+    <Compile Include="Objects\Transaction.cs" />
+    <Compile Include="Objects\TxInput.cs" />
+    <Compile Include="Objects\TxOutput.cs" />
     <Compile Include="Objects\TxReference.cs" />
+    <Compile Include="Objects\UnsignedTransaction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
