@@ -1,6 +1,7 @@
 ﻿#region
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 using RestSharp;
 
 #endregion
@@ -63,6 +65,14 @@ namespace BlockCypher {
             return PostAsync<AddressInfo>("addrs", null);
         }
 
+        public Task<HookInfo> GenerateHook(string address, HookEvent hook, string url) {
+            return PostAsync<HookInfo>("hooks", new {
+                @event = hook.GetAttributeOfType<DescriptionAttribute>().Description,
+                url,
+                address
+            });
+        }
+
         public Task<AddressBalance> GetBalanceForAddress(string address) {
             return GetAsync<AddressBalance>("addrs/{address}", null, new Parameter {
                 Name = "address",
@@ -75,7 +85,16 @@ namespace BlockCypher {
             return addresses.Select(GetBalanceForAddress);
         }
 
-        public Task Send(AddressInfo fromAddress, AddressInfo toAddress, Satoshi amount) {
+        private static byte[] GetBytesFromBase58Key(string privateKey) {
+            var tmp = Base58Helper.DecodeWithCheckSum(privateKey);
+            var bytes = new byte[tmp.Length - 1];
+
+            Array.Copy(tmp, 1, bytes, 0, tmp.Length - 1);
+
+            return bytes;
+        }
+
+        public Task<UnsignedTransaction> Send(AddressInfo fromAddress, AddressInfo toAddress, Satoshi amount) {
             return Send(fromAddress.Address, toAddress.Address, fromAddress.Private, fromAddress.Public, amount);
         }
 
@@ -101,35 +120,63 @@ namespace BlockCypher {
 
             // SIGN
 
-            var privateKey = fromPrivate.FromHexString();
-            var pubKeys = new List<string>();
-            var signatures = new List<string>();
+            unsignedTx.Signatures = new List<string>();
+            unsignedTx.PubKeys = new List<string>();
 
-            foreach (var s in unsignedTx.Transactions.Inputs.SelectMany(i => i.Addresses)) {
-                pubKeys.Add(fromPublic);
+            Sign(unsignedTx, fromPrivate, true, true, true);
 
-                var ecParams = new ECDomainParameters(SecNamedCurves.GetByName("secp256k1").Curve, SecNamedCurves.GetByName("secp256k1").G,
-                    SecNamedCurves.GetByName("secp256k1").N);
-                var signer = new ECDsaSigner();
-                signer.Init(true, new ECPrivateKeyParameters(new BigInteger(1, privateKey), ecParams));
+            return await PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
+        }
 
-                var sig = signer.GenerateSignature(Base58Helper.Decode(s));
+        private static void Sign(UnsignedTransaction unsignedTransaction, string privateKey, bool isHex, bool addPubKey,
+            bool forceCompressed = false) {
+            bool compressed = false;
+            byte[] bytes = isHex ? privateKey.FromHexString() : GetBytesFromBase58Key(privateKey);
+
+            if (bytes.Length == 33 && bytes[32] == 1) {
+                compressed = true;
+                bytes = bytes.Take(32).ToArray();
+            }
+
+            var privKeyB = new BigInteger(1, bytes);
+            var parms = SecNamedCurves.GetByName("secp256k1");
+            var curve = new ECDomainParameters(parms.Curve, parms.G, parms.N, parms.H);
+            var halfCurveOrder = parms.N.ShiftRight(1);
+
+            var point = curve.G.Multiply(privKeyB);
+
+            if (compressed || forceCompressed)
+                point = new FpPoint(curve.Curve, point.X, point.Y, true);
+
+            var publicKey = point.GetEncoded();
+            var signer = new ECDsaSigner();
+            var privKey = new ECPrivateKeyParameters(privKeyB, curve);
+            signer.Init(true, privKey);
+
+            foreach (var toSign in unsignedTransaction.ToSign) {
+                if (addPubKey)
+                    unsignedTransaction.PubKeys.Add(publicKey.ToHexString());
+
+                var components = signer.GenerateSignature(toSign.FromHexString());
+                var r = components[0];
+                var s = components[1];
+
+                if (s.CompareTo(halfCurveOrder) > 0)
+                    s = curve.N.Subtract(s);
 
                 using (var ms = new MemoryStream())
                 using (var asn = new Asn1OutputStream(ms)) {
                     var seq = new DerSequenceGenerator(asn);
-                    seq.AddObject(new DerInteger(sig[0]));
-                    seq.AddObject(new DerInteger(sig[1]));
+                    seq.AddObject(new DerInteger(r));
+                    seq.AddObject(new DerInteger(s));
+
                     seq.Close();
 
-                    signatures.Add(ms.ToArray().ToHexString());
+                    var signedString = ms.ToArray().ToHexString();
+
+                    unsignedTransaction.Signatures.Add(signedString);
                 }
             }
-
-            unsignedTx.Signatures = signatures;
-            unsignedTx.PubKeys = pubKeys;
-
-            return await PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
         }
 
         #region Helpers
@@ -153,7 +200,7 @@ namespace BlockCypher {
 
         internal RestClient GetClient(string url) {
             var client = new RestClient(BaseUrl) {
-                UserAgent = "Blockcypher.NET // @bscheiman"
+                UserAgent = "Blockcypher.NET"
             };
 
             return client;

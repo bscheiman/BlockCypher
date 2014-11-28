@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E203C0BC-F28E-463F-953D-A37D42B79397}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{4DC3C90B-0D63-4C1E-A090-2074B2457C06}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BlockCypher</RootNamespace>
-    <AssemblyName>BlockCypher</AssemblyName>
+    <RootNamespace>BlockCypher.Test</RootNamespace>
+    <AssemblyName>BlockCypher.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,23 +32,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto">
-      <HintPath>packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+    <Reference Include="bscheiman.Common, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\BlockCypher\packages\bscheiman.Common.1.0.16\lib\net40\bscheiman.Common.dll</HintPath>
     </Reference>
-    <Reference Include="bscheiman.Common">
-      <HintPath>packages\bscheiman.Common.1.0.16\lib\net40\bscheiman.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Build.Tasks.v4.0" />
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="RestSharp">
-      <HintPath>packages\RestSharp.105.0.1\lib\net4\RestSharp.dll</HintPath>
+      <HintPath>..\BlockCypher\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,26 +49,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blockcypher.cs" />
-    <Compile Include="Endpoint.cs" />
-    <Compile Include="Helpers\Base58Helper.cs" />
-    <Compile Include="HookEvent.cs" />
-    <Compile Include="Objects\AddressInfo.cs" />
-    <Compile Include="Objects\Balance.cs" />
-    <Compile Include="Objects\BaseObject.cs" />
-    <Compile Include="Objects\Faucet.cs" />
-    <Compile Include="Objects\HookInfo.cs" />
-    <Compile Include="Objects\SatoshiConverter.cs" />
-    <Compile Include="Objects\Satoshi.cs" />
-    <Compile Include="Objects\Transaction.cs" />
-    <Compile Include="Objects\TxInput.cs" />
-    <Compile Include="Objects\TxOutput.cs" />
-    <Compile Include="Objects\TxReference.cs" />
-    <Compile Include="Objects\UnsignedTransaction.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BlockCypher\BlockCypher.csproj">
+      <Project>{e203c0bc-f28e-463f-953d-a37d42b79397}</Project>
+      <Name>BlockCypher</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
