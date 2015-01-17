@@ -18,6 +18,9 @@ namespace BlockCypher.Objects {
 
         public string Wif { get; set; }
 
+        public AddressInfo() {
+        }
+
         public AddressInfo(string address, string priv, string pub) {
             Address = address;
             Private = priv;
