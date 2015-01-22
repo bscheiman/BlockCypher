@@ -16,7 +16,19 @@ namespace BlockCypher.Objects {
         [JsonProperty("public")]
         public string Public { get; set; }
 
-        public string Wif { get; set; }
+        public string Wif {
+            get {
+                var privateKey = Private.FromHexString();
+
+                if (privateKey[0] != 0x80)
+                    privateKey = ("80" + privateKey.ToHexString() + "01").FromHexString();
+
+                var hash = privateKey.ToSHA256();
+                var reHash = hash.ToSHA256();
+
+                return Base58Helper.Encode((privateKey.ToHexString() + reHash.ToHexString().Substring(0, 8)).FromHexString());
+            }
+        }
 
         public AddressInfo() {
         }
@@ -25,16 +37,6 @@ namespace BlockCypher.Objects {
             Address = address;
             Private = priv;
             Public = pub;
-
-            var privateKey = Private.FromHexString();
-
-            if (privateKey[0] != 0x80)
-                privateKey = ("80" + privateKey.ToHexString() + "01").FromHexString();
-
-            var hash = privateKey.ToSHA256();
-            var reHash = hash.ToSHA256();
-
-            Wif = Base58Helper.Encode((privateKey.ToHexString() + reHash.ToHexString().Substring(0, 8)).FromHexString());
         }
     }
 }
