@@ -1,6 +1,6 @@
 ﻿#region
-using bscheiman.Common.Extensions;
 using BlockCypher.Helpers;
+using BlockCypher.Pcl;
 using Newtonsoft.Json;
 
 #endregion

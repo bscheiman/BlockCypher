@@ -1,20 +1,21 @@
 ﻿#region
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using BlockCypher.Helpers;
 using BlockCypher.Objects;
-using bscheiman.Common.Extensions;
+using BlockCypher.Pcl;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using RestSharp;
 
 #endregion
 
@@ -66,32 +67,43 @@ namespace BlockCypher {
         }
 
         public Task<HookInfo> GenerateHook(string address, HookEvent hook, string url) {
+            string evt = "";
+
+            switch (hook) {
+                case HookEvent.ConfirmedTransaction:
+                    evt = "confirmed-tx";
+                    break;
+
+                case HookEvent.DoubleSpendTransaction:
+                    evt = "double-spend-tx";
+                    break;
+
+                case HookEvent.NewBlock:
+                    evt = "new-block";
+                    break;
+
+                case HookEvent.TransactionConfirmation:
+                    evt = "tx-confirmation";
+                    break;
+
+                case HookEvent.UnconfirmedTransaction:
+                    evt = "unconfirmed-tx";
+                    break;
+            }
+
             return PostAsync<HookInfo>("hooks", new {
-                @event = hook.GetAttributeOfType<DescriptionAttribute>().Description,
+                @event = evt,
                 url,
                 address
             });
         }
 
         public Task<AddressBalance> GetBalanceForAddress(string address) {
-            return GetAsync<AddressBalance>("addrs/{address}", null, new Parameter {
-                Name = "address",
-                Value = address,
-                Type = ParameterType.UrlSegment
-            });
+            return GetAsync<AddressBalance>(string.Format("addrs/{0}", address));
         }
 
         public IEnumerable<Task<AddressBalance>> GetBalanceForAddresses(params string[] addresses) {
             return addresses.Select(GetBalanceForAddress);
-        }
-
-        private static byte[] GetBytesFromBase58Key(string privateKey) {
-            var tmp = Base58Helper.DecodeWithCheckSum(privateKey);
-            var bytes = new byte[tmp.Length - 1];
-
-            Array.Copy(tmp, 1, bytes, 0, tmp.Length - 1);
-
-            return bytes;
         }
 
         public Task<UnsignedTransaction> Send(AddressInfo fromAddress, AddressInfo toAddress, Satoshi amount) {
@@ -99,7 +111,7 @@ namespace BlockCypher {
         }
 
         public async Task<UnsignedTransaction> Send(string fromAddress, string toAddress, string fromPrivate, string fromPublic,
-            Satoshi amount) {
+                                                    Satoshi amount) {
             var unsignedTx = await PostAsync<UnsignedTransaction>("txs/new", new Transaction {
                 Inputs = new[] {
                     new TxInput {
@@ -128,10 +140,19 @@ namespace BlockCypher {
             return await PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
         }
 
+        private static byte[] GetBytesFromBase58Key(string privateKey) {
+            var tmp = Base58Helper.DecodeWithCheckSum(privateKey);
+            var bytes = new byte[tmp.Length - 1];
+
+            Array.Copy(tmp, 1, bytes, 0, tmp.Length - 1);
+
+            return bytes;
+        }
+
         private static void Sign(UnsignedTransaction unsignedTransaction, string privateKey, bool isHex, bool addPubKey,
-            bool forceCompressed = false) {
+                                 bool forceCompressed = false) {
             bool compressed = false;
-            byte[] bytes = isHex ? privateKey.FromHexString() : GetBytesFromBase58Key(privateKey);
+            var bytes = isHex ? privateKey.FromHexString() : GetBytesFromBase58Key(privateKey);
 
             if (bytes.Length == 33 && bytes[32] == 1) {
                 compressed = true;
@@ -153,7 +174,7 @@ namespace BlockCypher {
             var privKey = new ECPrivateKeyParameters(privKeyB, curve);
             signer.Init(true, privKey);
 
-            foreach (var toSign in unsignedTransaction.ToSign) {
+            foreach (string toSign in unsignedTransaction.ToSign) {
                 if (addPubKey)
                     unsignedTransaction.PubKeys.Add(publicKey.ToHexString());
 
@@ -172,7 +193,7 @@ namespace BlockCypher {
 
                     seq.Close();
 
-                    var signedString = ms.ToArray().ToHexString();
+                    string signedString = ms.ToArray().ToHexString();
 
                     unsignedTransaction.Signatures.Add(signedString);
                 }
@@ -180,68 +201,36 @@ namespace BlockCypher {
         }
 
         #region Helpers
-        internal Task<T> DeleteAsync<T>(string url, params Parameter[] parameters) where T : new() {
-            var tcs = new TaskCompletionSource<T>();
-            var client = GetClient(url);
+        internal async Task<T> GetAsync<T>(string url) {
+            var client = GetClient();
 
-            client.ExecuteAsync(GetRequest(url, Method.DELETE, null, parameters), response => tcs.SetResult(response.Content.FromJson<T>()));
+            var response = await client.GetAsync(string.Format("{0}/{1}", BaseUrl, url));
+            response.EnsureSuccessStatusCode();
 
-            return tcs.Task;
+            string content = await response.Content.ReadAsStringAsync();
+
+            return content.FromJson<T>();
         }
 
-        internal Task<T> GetAsync<T>(string url, object obj = null, params Parameter[] parameters) {
-            var tcs = new TaskCompletionSource<T>();
-            var client = GetClient(url);
-
-            client.ExecuteAsync(GetRequest(url, Method.GET, obj, parameters), response => tcs.SetResult(response.Content.FromJson<T>()));
-
-            return tcs.Task;
-        }
-
-        internal RestClient GetClient(string url) {
-            var client = new RestClient(BaseUrl) {
-                UserAgent = "Blockcypher.NET"
-            };
+        internal HttpClient GetClient() {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             return client;
         }
 
-        internal RestRequest GetRequest(string url, Method method, object obj, params Parameter[] parameters) {
-            var request = new RestRequest(url, method);
+        internal async Task<T> PostAsync<T>(string url, object obj) where T : new() {
+            var client = GetClient();
 
-            foreach (var p in parameters)
-                request.AddParameter(p);
+            var response =
+                await
+                    client.PostAsync(string.Format("{0}/{1}", BaseUrl, url),
+                        new StringContent((obj ?? new object()).ToJson(), Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
 
-            if (!string.IsNullOrEmpty(UserToken)) {
-                request.AddParameter(new Parameter {
-                    Name = "token",
-                    Type = ParameterType.QueryString,
-                    Value = UserToken
-                });
-            }
+            string content = await response.Content.ReadAsStringAsync();
 
-            request.AddParameter("application/json", (obj ?? new {
-            }).ToJson(), ParameterType.RequestBody);
-
-            return request;
-        }
-
-        internal Task<T> PostAsync<T>(string url, object obj, params Parameter[] parameters) where T : new() {
-            var tcs = new TaskCompletionSource<T>();
-            var client = GetClient(url);
-
-            client.ExecuteAsync(GetRequest(url, Method.POST, obj, parameters), response => tcs.SetResult(response.Content.FromJson<T>()));
-
-            return tcs.Task;
-        }
-
-        internal Task<T> PutAsync<T>(string url, object obj, params Parameter[] parameters) where T : new() {
-            var tcs = new TaskCompletionSource<T>();
-            var client = GetClient(url);
-
-            client.ExecuteAsync(GetRequest(url, Method.PUT, obj, parameters), response => tcs.SetResult(response.Content.FromJson<T>()));
-
-            return tcs.Task;
+            return content.FromJson<T>();
         }
         #endregion
     }

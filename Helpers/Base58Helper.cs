@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography;
+using BlockCypher.Pcl;
 
 #endregion
 
@@ -62,12 +62,13 @@ namespace BlockCypher.Helpers {
 
                 if (digit < 0)
                     throw new FormatException(string.Format("Invalid Base58 character `{0}` at position {1}", s[i], i));
+
                 intData = intData * 58 + digit;
             }
 
             // Encode BigInteger to byte[]
             // Leading zero bytes get encoded as leading `1` characters
-            int leadingZeroCount = s.TakeWhile(c => c == '1').Count();
+            int leadingZeroCount = s.ToCharArray().TakeWhile(c => c == '1').Count();
             var leadingZeros = Enumerable.Repeat((byte) 0, leadingZeroCount);
             var bytesWithoutLeadingZeros = intData.ToByteArray().Reverse() // to big endian
                 .SkipWhile(b => b == 0); //strip sign byte
@@ -110,9 +111,8 @@ namespace BlockCypher.Helpers {
         }
 
         private static byte[] GetCheckSum(byte[] data) {
-            SHA256 sha256 = new SHA256Managed();
-            byte[] hash1 = sha256.ComputeHash(data);
-            byte[] hash2 = sha256.ComputeHash(hash1);
+            byte[] hash1 = data.ToSHA256();
+            byte[] hash2 = hash1.ToSHA256();
 
             var result = new byte[CheckSumSizeInBytes];
             Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
