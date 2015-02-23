@@ -4,6 +4,7 @@ namespace BlockCypher {
         BtcTest3,
         LtcMain,
         UroMain,
-        BcyTest
+        BcyTest,
+        DogeMain
     }
 }

@@ -49,6 +49,10 @@ namespace BlockCypher {
                 case Endpoint.UroMain:
                     BaseUrl = new Uri("https://api.blockcypher.com/v1/uro/main");
                     break;
+
+                case Endpoint.DogeMain:
+                    BaseUrl = new Uri("https://api.blockcypher.com/v1/doge/main");
+                    break;
             }
         }
 
