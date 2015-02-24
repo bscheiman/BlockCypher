@@ -19,12 +19,12 @@ namespace BlockCypher.Objects {
         }
 
         public decimal mBtc {
-            get { return _value / 100000; }
+            get { return _value / 100000M; }
             set { _value = (long) (value * 100000); }
         }
 
         public decimal uBtc {
-            get { return _value / 100; }
+            get { return _value / 100M; }
             set { _value = (long) (value * 100); }
         }
 

@@ -43,6 +43,7 @@
     <Compile Include="Objects\AddressInfo.cs" />
     <Compile Include="Objects\Balance.cs" />
     <Compile Include="Objects\BaseObject.cs" />
+    <Compile Include="Objects\BasicTransaction.cs" />
     <Compile Include="Objects\Faucet.cs" />
     <Compile Include="Objects\HookInfo.cs" />
     <Compile Include="Objects\Satoshi.cs" />

@@ -110,13 +110,33 @@ namespace BlockCypher {
             return addresses.Select(GetBalanceForAddress);
         }
 
+        public Task<Transaction[]> GetTransactions(AddressInfo fromAddress) {
+            return GetTransactions(fromAddress.Public);
+        }
+
+        public async Task<Transaction[]> GetTransactions(string fromAddress) {
+            var addressInfo = await GetBalanceForAddress(fromAddress);
+            var txs = addressInfo.Transactions.Select(t => t.TxHash).ToArray();
+            var groups = txs.Select((x, i) => new {
+                Key = i / 40,
+                Value = x
+            }).GroupBy(x => x.Key, x => x.Value, (k, g) => g.ToArray()).ToArray();
+
+            var list = new List<Transaction>();
+
+            foreach (string url in groups.Select(g => string.Format("txs/{0}", string.Join(";", g))))
+                list.AddRange(await GetAsync<Transaction[]>(url));
+
+            return list.OrderBy(t => t.Confirmed).ToArray();
+        }
+
         public Task<UnsignedTransaction> Send(AddressInfo fromAddress, AddressInfo toAddress, Satoshi amount) {
             return Send(fromAddress.Address, toAddress.Address, fromAddress.Private, fromAddress.Public, amount);
         }
 
         public async Task<UnsignedTransaction> Send(string fromAddress, string toAddress, string fromPrivate, string fromPublic,
                                                     Satoshi amount) {
-            var unsignedTx = await PostAsync<UnsignedTransaction>("txs/new", new Transaction {
+            var unsignedTx = await PostAsync<UnsignedTransaction>("txs/new", new BasicTransaction {
                 Inputs = new[] {
                     new TxInput {
                         Addresses = new[] {
