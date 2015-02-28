@@ -124,8 +124,12 @@ namespace BlockCypher {
 
             var list = new List<Transaction>();
 
-            foreach (string url in groups.Select(g => string.Format("txs/{0}", string.Join(";", g))))
-                list.AddRange(await GetAsync<Transaction[]>(url));
+            foreach (string url in groups.Select(g => string.Format("txs/{0}", string.Join(";", g)))) {
+                var transactions = await GetAsync<Transaction[]>(url);
+
+                if (transactions != null)
+                    list.AddRange(transactions);
+            }
 
             return list.OrderBy(t => t.Confirmed).ToArray();
         }
