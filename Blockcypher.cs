@@ -116,6 +116,10 @@ namespace BlockCypher {
 
         public async Task<Transaction[]> GetTransactions(string fromAddress) {
             var addressInfo = await GetBalanceForAddress(fromAddress);
+
+            if (addressInfo.Transactions == null)
+                return new Transaction[0];
+
             var txs = addressInfo.Transactions.Select(t => t.TxHash).ToArray();
             var groups = txs.Select((x, i) => new {
                 Key = i / 40,
