@@ -120,7 +120,7 @@ namespace BlockCypher {
             if (addressInfo.Transactions == null)
                 return new Transaction[0];
 
-            var txs = addressInfo.Transactions.Select(t => t.TxHash).ToArray();
+            var txs = addressInfo.Transactions.Select(t => t.TxHash).Distinct().ToArray();
             var groups = txs.Select((x, i) => new {
                 Key = i / 40,
                 Value = x

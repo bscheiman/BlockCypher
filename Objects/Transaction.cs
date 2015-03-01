@@ -84,7 +84,7 @@ namespace BlockCypher.Objects {
         public string Preference { get; set; }
 
         [JsonProperty("received")]
-        public string Received { get; set; }
+        public DateTime Received { get; set; }
 
         [JsonProperty("relayed_by")]
         public string RelayedBy { get; set; }
