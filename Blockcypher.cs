@@ -71,35 +71,41 @@ namespace BlockCypher {
         }
 
         public Task<HookInfo> GenerateHook(string address, HookEvent hook, string url) {
-            string evt = "";
+            try {
+                string evt = "";
 
-            switch (hook) {
-                case HookEvent.ConfirmedTransaction:
-                    evt = "confirmed-tx";
-                    break;
+                switch (hook) {
+                    case HookEvent.ConfirmedTransaction:
+                        evt = "confirmed-tx";
+                        break;
 
-                case HookEvent.DoubleSpendTransaction:
-                    evt = "double-spend-tx";
-                    break;
+                    case HookEvent.DoubleSpendTransaction:
+                        evt = "double-spend-tx";
+                        break;
 
-                case HookEvent.NewBlock:
-                    evt = "new-block";
-                    break;
+                    case HookEvent.NewBlock:
+                        evt = "new-block";
+                        break;
 
-                case HookEvent.TransactionConfirmation:
-                    evt = "tx-confirmation";
-                    break;
+                    case HookEvent.TransactionConfirmation:
+                        evt = "tx-confirmation";
+                        break;
 
-                case HookEvent.UnconfirmedTransaction:
-                    evt = "unconfirmed-tx";
-                    break;
+                    case HookEvent.UnconfirmedTransaction:
+                        evt = "unconfirmed-tx";
+                        break;
+                }
+
+                return PostAsync<HookInfo>("hooks", new {
+                    @event = evt,
+                    url,
+                    address
+                });
+            } catch {
+                return Task.Factory.StartNew(() => new HookInfo {
+                    Error = "Hook already exists"
+                });
             }
-
-            return PostAsync<HookInfo>("hooks", new {
-                @event = evt,
-                url,
-                address
-            });
         }
 
         public Task<AddressBalance> GetBalanceForAddress(string address) {
