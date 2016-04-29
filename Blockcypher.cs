@@ -261,16 +261,24 @@ namespace BlockCypher {
             return client;
         }
 
+        public static bool EnableLogging = true;
         internal async Task<T> PostAsync<T>(string url, object obj) where T : new() {
             var client = GetClient();
 
+            var targetUrl = String.Format("{0}/{1}", BaseUrl, url);
+            var requestJson = (obj ?? new object()).ToJson();
+            if (EnableLogging)
+                Debug.WriteLine("BlockCypher Request -> {0}\n{1}", targetUrl, requestJson);
+
             var response =
                 await
-                    client.PostAsync(string.Format("{0}/{1}", BaseUrl, url),
-                        new StringContent((obj ?? new object()).ToJson(), Encoding.UTF8, "application/json"));
-            response.EnsureSuccessStatusCode();
-
+                    client.PostAsync(targetUrl,
+                        new StringContent(requestJson, Encoding.UTF8, "application/json"));
             string content = await response.Content.ReadAsStringAsync();
+            if (EnableLogging)
+                Debug.WriteLine("BlockCypher Response:\n{0}", content);
+
+            response.EnsureSuccessStatusCode();
 
             return content.FromJson<T>();
         }
