@@ -16,6 +16,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using System.Diagnostics;
 
 #endregion
 
@@ -167,6 +168,9 @@ namespace BlockCypher {
                     }
                 }
             });
+
+            // NOTE: Quickfix - API was failing without this field being initialized
+            unsignedTx.Transactions.Confirmed = DateTime.UtcNow;
 
             // SIGN
 
