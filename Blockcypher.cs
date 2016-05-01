@@ -270,9 +270,7 @@ namespace BlockCypher {
             if (EnableLogging)
                 Debug.WriteLine("BlockCypher Request -> {0}\n{1}", targetUrl, requestJson);
 
-            var response =
-                await
-                    client.PostAsync(targetUrl,
+            var response = await client.PostAsync(targetUrl,
                         new StringContent(requestJson, Encoding.UTF8, "application/json"));
             string content = await response.Content.ReadAsStringAsync();
             if (EnableLogging)

@@ -3,65 +3,53 @@ using Newtonsoft.Json;
 
 #endregion
 
-namespace BlockCypher.Objects
-{
-    [JsonConverter(typeof(SatoshiConverter))]
-    public class Satoshi
-    {
+namespace BlockCypher.Objects {
+    [JsonConverter(typeof (SatoshiConverter))]
+    public class Satoshi {
         private long _value;
 
-        public decimal Btc
-        {
+        public decimal Btc {
             get { return Value / 100000000; }
-            set { _value = (long)(value * 100000000); }
+            set { _value = (long) (value * 100000000); }
         }
 
-        public decimal Value
-        {
+        public decimal Value {
             get { return _value; }
-            set { _value = (long)value; }
+            set { _value = (long) value; }
         }
 
-        public long ValueLong
-        {
+        public long ValueLong {
             get { return _value; }
             set { _value = value; }
         }
 
-        public decimal mBtc
-        {
+        public decimal mBtc {
             get { return _value / 100000M; }
-            set { _value = (long)(value * 100000); }
+            set { _value = (long) (value * 100000); }
         }
 
-        public decimal uBtc
-        {
+        public decimal uBtc {
             get { return _value / 100M; }
-            set { _value = (long)(value * 100); }
+            set { _value = (long) (value * 100); }
         }
 
-        public Satoshi()
-        {
+        public Satoshi() {
             Value = 0;
         }
 
-        public Satoshi(int val)
-        {
+        public Satoshi(int val) {
             Value = val;
         }
 
-        public Satoshi(long val)
-        {
+        public Satoshi(long val) {
             Value = val;
         }
 
-        public static implicit operator Satoshi(int value)
-        {
+        public static implicit operator Satoshi(int value) {
             return new Satoshi(value);
         }
 
-        public static implicit operator Satoshi(long value)
-        {
+        public static implicit operator Satoshi(long value) {
             return new Satoshi(value);
         }
     }
