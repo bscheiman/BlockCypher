@@ -16,6 +16,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using System.Diagnostics;
 
 #endregion
 
@@ -168,6 +169,9 @@ namespace BlockCypher {
                 }
             });
 
+            // NOTE: Quickfix - API was failing without this field being initialized
+            unsignedTx.Transactions.Confirmed = DateTime.UtcNow;
+
             // SIGN
 
             unsignedTx.Signatures = new List<string>();
@@ -257,16 +261,22 @@ namespace BlockCypher {
             return client;
         }
 
+        public static bool EnableLogging = true;
         internal async Task<T> PostAsync<T>(string url, object obj) where T : new() {
             var client = GetClient();
 
-            var response =
-                await
-                    client.PostAsync(string.Format("{0}/{1}", BaseUrl, url),
-                        new StringContent((obj ?? new object()).ToJson(), Encoding.UTF8, "application/json"));
-            response.EnsureSuccessStatusCode();
+            var targetUrl = String.Format("{0}/{1}", BaseUrl, url);
+            var requestJson = (obj ?? new object()).ToJson();
+            if (EnableLogging)
+                Debug.WriteLine("BlockCypher Request -> {0}\n{1}", targetUrl, requestJson);
 
+            var response = await client.PostAsync(targetUrl,
+                        new StringContent(requestJson, Encoding.UTF8, "application/json"));
             string content = await response.Content.ReadAsStringAsync();
+            if (EnableLogging)
+                Debug.WriteLine("BlockCypher Response:\n{0}", content);
+
+            response.EnsureSuccessStatusCode();
 
             return content.FromJson<T>();
         }

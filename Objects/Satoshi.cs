@@ -18,6 +18,11 @@ namespace BlockCypher.Objects {
             set { _value = (long) value; }
         }
 
+        public long ValueLong {
+            get { return _value; }
+            set { _value = value; }
+        }
+
         public decimal mBtc {
             get { return _value / 100000M; }
             set { _value = (long) (value * 100000); }
