@@ -262,6 +262,7 @@ namespace BlockCypher {
         }
 
         public static bool EnableLogging = true;
+        public string LastResponse;
         internal async Task<T> PostAsync<T>(string url, object obj) where T : new() {
             var client = GetClient();
 
@@ -273,6 +274,7 @@ namespace BlockCypher {
             var response = await client.PostAsync(targetUrl,
                         new StringContent(requestJson, Encoding.UTF8, "application/json"));
             string content = await response.Content.ReadAsStringAsync();
+            LastResponse = content;
             if (EnableLogging)
                 Debug.WriteLine("BlockCypher Response:\n{0}", content);
 
