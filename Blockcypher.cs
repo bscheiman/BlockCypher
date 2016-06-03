@@ -26,6 +26,7 @@ namespace BlockCypher {
         public Endpoint Endpoint { get; set; }
         public string UserToken { get; set; }
         public bool EnsureSuccessStatusCode { get; set; }
+        public int ThrottleRequests { get; set; }
 
         public Blockcypher(string token = "", Endpoint endpoint = Endpoint.BtcMain) {
             UserToken = token;
@@ -254,6 +255,9 @@ namespace BlockCypher {
 
             string content = await response.Content.ReadAsStringAsync();
 
+            if (ThrottleRequests > 0)
+                await Task.Delay(ThrottleRequests);
+
             return content.FromJson<T>();
         }
 
@@ -283,6 +287,9 @@ namespace BlockCypher {
 
             if (EnsureSuccessStatusCode)
                 response.EnsureSuccessStatusCode();
+
+            if (ThrottleRequests > 0)
+                await Task.Delay(ThrottleRequests);
 
             return content.FromJson<T>();
         }
