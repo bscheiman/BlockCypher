@@ -25,6 +25,7 @@ namespace BlockCypher {
         public Uri BaseUrl { get; set; }
         public Endpoint Endpoint { get; set; }
         public string UserToken { get; set; }
+        public bool EnsureSuccessStatusCode { get; set; }
 
         public Blockcypher(string token = "", Endpoint endpoint = Endpoint.BtcMain) {
             UserToken = token;
@@ -247,7 +248,9 @@ namespace BlockCypher {
             var client = GetClient();
 
             var response = await client.GetAsync(string.Format("{0}/{1}", BaseUrl, url));
-            response.EnsureSuccessStatusCode();
+
+            if (EnsureSuccessStatusCode)
+                response.EnsureSuccessStatusCode();
 
             string content = await response.Content.ReadAsStringAsync();
 
@@ -278,7 +281,8 @@ namespace BlockCypher {
             if (EnableLogging)
                 Debug.WriteLine("BlockCypher Response:\n{0}", content);
 
-            response.EnsureSuccessStatusCode();
+            if (EnsureSuccessStatusCode)
+                response.EnsureSuccessStatusCode();
 
             return content.FromJson<T>();
         }
