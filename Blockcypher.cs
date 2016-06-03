@@ -171,6 +171,48 @@ namespace BlockCypher {
                 }
             });
 
+            return await processSend(unsignedTx, fromPrivate);
+        }
+
+        public class SendingHolder
+        {
+            public string Wallet { get; set; }
+            public Satoshi Value { get; set; }
+
+            public TxOutput ToTxn()
+            {
+                return new TxOutput
+                {
+                    Addresses = new[] {
+                            Wallet
+                        },
+                    Value = this.Value
+                };
+            }
+        }
+
+        public async Task<UnsignedTransaction> SendMany(string fromAddress, string fromPrivate, string fromPublic, List<SendingHolder> sendTo)
+        {
+            var unsignedTx = await PostAsync<UnsignedTransaction>("txs/new", new BasicTransaction
+            {
+                Inputs = new[] {
+                    new TxInput {
+                        Addresses = new[] {
+                            fromAddress
+                        }
+                    }
+                },
+                Outputs = sendTo.Select(a=>a.ToTxn()).ToArray()
+            });
+
+            return await processSend(unsignedTx, fromPrivate);
+        }
+
+        private Task<UnsignedTransaction> processSend(UnsignedTransaction unsignedTx, string fromPrivate)
+        {
+            if (unsignedTx.IsError)
+                return Task.FromResult(unsignedTx);
+
             // NOTE: Quickfix - API was failing without this field being initialized
             unsignedTx.Transactions.Confirmed = DateTime.UtcNow;
 
@@ -181,7 +223,7 @@ namespace BlockCypher {
 
             Sign(unsignedTx, fromPrivate, true, true, true);
 
-            return await PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
+            return PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
         }
 
         private static byte[] GetBytesFromBase58Key(string privateKey) {
