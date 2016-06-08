@@ -25,6 +25,8 @@ namespace BlockCypher {
         public Uri BaseUrl { get; set; }
         public Endpoint Endpoint { get; set; }
         public string UserToken { get; set; }
+        public bool EnsureSuccessStatusCode { get; set; }
+        public int ThrottleRequests { get; set; }
 
         public Blockcypher(string token = "", Endpoint endpoint = Endpoint.BtcMain) {
             UserToken = token;
@@ -169,6 +171,48 @@ namespace BlockCypher {
                 }
             });
 
+            return await processSend(unsignedTx, fromPrivate);
+        }
+
+        public class SendingHolder
+        {
+            public string Wallet { get; set; }
+            public Satoshi Value { get; set; }
+
+            public TxOutput ToTxn()
+            {
+                return new TxOutput
+                {
+                    Addresses = new[] {
+                            Wallet
+                        },
+                    Value = this.Value
+                };
+            }
+        }
+
+        public async Task<UnsignedTransaction> SendMany(string fromAddress, string fromPrivate, string fromPublic, List<SendingHolder> sendTo)
+        {
+            var unsignedTx = await PostAsync<UnsignedTransaction>("txs/new", new BasicTransaction
+            {
+                Inputs = new[] {
+                    new TxInput {
+                        Addresses = new[] {
+                            fromAddress
+                        }
+                    }
+                },
+                Outputs = sendTo.Select(a=>a.ToTxn()).ToArray()
+            });
+
+            return await processSend(unsignedTx, fromPrivate);
+        }
+
+        private Task<UnsignedTransaction> processSend(UnsignedTransaction unsignedTx, string fromPrivate)
+        {
+            if (unsignedTx.IsError)
+                return Task.FromResult(unsignedTx);
+
             // NOTE: Quickfix - API was failing without this field being initialized
             unsignedTx.Transactions.Confirmed = DateTime.UtcNow;
 
@@ -179,7 +223,7 @@ namespace BlockCypher {
 
             Sign(unsignedTx, fromPrivate, true, true, true);
 
-            return await PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
+            return PostAsync<UnsignedTransaction>("txs/send", unsignedTx);
         }
 
         private static byte[] GetBytesFromBase58Key(string privateKey) {
@@ -247,9 +291,14 @@ namespace BlockCypher {
             var client = GetClient();
 
             var response = await client.GetAsync(string.Format("{0}/{1}", BaseUrl, url));
-            response.EnsureSuccessStatusCode();
+
+            if (EnsureSuccessStatusCode)
+                response.EnsureSuccessStatusCode();
 
             string content = await response.Content.ReadAsStringAsync();
+
+            if (ThrottleRequests > 0)
+                await Task.Delay(ThrottleRequests);
 
             return content.FromJson<T>();
         }
@@ -262,6 +311,7 @@ namespace BlockCypher {
         }
 
         public static bool EnableLogging = true;
+        public string LastResponse;
         internal async Task<T> PostAsync<T>(string url, object obj) where T : new() {
             var client = GetClient();
 
@@ -273,10 +323,15 @@ namespace BlockCypher {
             var response = await client.PostAsync(targetUrl,
                         new StringContent(requestJson, Encoding.UTF8, "application/json"));
             string content = await response.Content.ReadAsStringAsync();
+            LastResponse = content;
             if (EnableLogging)
                 Debug.WriteLine("BlockCypher Response:\n{0}", content);
 
-            response.EnsureSuccessStatusCode();
+            if (EnsureSuccessStatusCode)
+                response.EnsureSuccessStatusCode();
+
+            if (ThrottleRequests > 0)
+                await Task.Delay(ThrottleRequests);
 
             return content.FromJson<T>();
         }
