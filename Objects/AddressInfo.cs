@@ -26,7 +26,9 @@ namespace BlockCypher.Objects {
                 var hash = privateKey.ToSHA256();
                 var reHash = hash.ToSHA256();
 
-                return Base58Helper.Encode((privateKey.ToHexString() + reHash.ToHexString().Substring(0, 8)).FromHexString());
+                return
+                    Base58Helper.Encode(
+                        (privateKey.ToHexString() + reHash.ToHexString().Substring(0, 8)).FromHexString());
             }
         }
 

@@ -51,7 +51,8 @@ namespace BlockCypher.Pcl {
                 throw new ArgumentNullException(parameterName);
         }
 
-        public static string ToHexString(this byte[] byteArray, bool upperCase = false, int splitInGroups = -1, string separator = " ") {
+        public static string ToHexString(this byte[] byteArray, bool upperCase = false, int splitInGroups = -1,
+                                         string separator = " ") {
             string str = BitConverter.ToString(byteArray).Replace("-", "");
 
             str = upperCase ? str.ToUpper() : str.ToLower();

@@ -4,34 +4,29 @@ using Newtonsoft.Json;
 #endregion
 
 namespace BlockCypher.Objects {
-    [JsonConverter(typeof (SatoshiConverter))]
+    [JsonConverter(typeof(SatoshiConverter))]
     public class Satoshi {
-        private long _value;
-
         public decimal Btc {
             get { return Value / 100000000; }
-            set { _value = (long) (value * 100000000); }
-        }
-
-        public decimal Value {
-            get { return _value; }
-            set { _value = (long) value; }
-        }
-
-        public long ValueLong {
-            get { return _value; }
-            set { _value = value; }
+            set { ValueLong = (long) (value * 100000000); }
         }
 
         public decimal mBtc {
-            get { return _value / 100000M; }
-            set { _value = (long) (value * 100000); }
+            get { return ValueLong / 100000M; }
+            set { ValueLong = (long) (value * 100000); }
         }
 
         public decimal uBtc {
-            get { return _value / 100M; }
-            set { _value = (long) (value * 100); }
+            get { return ValueLong / 100M; }
+            set { ValueLong = (long) (value * 100); }
         }
+
+        public decimal Value {
+            get { return ValueLong; }
+            set { ValueLong = (long) value; }
+        }
+
+        public long ValueLong { get; set; }
 
         public Satoshi() {
             Value = 0;

@@ -1,4 +1,4 @@
-﻿#region
+#region
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -6,15 +6,12 @@ using Newtonsoft.Json;
 #endregion
 
 namespace BlockCypher.Objects {
-    public class Transaction {
+    public class UnsignedInner {
         [JsonProperty("addresses")]
         public IList<string> Addresses { get; set; }
 
-        [JsonProperty("block_hash")]
-        public string BlockHash { get; set; }
-
         [JsonProperty("block_height")]
-        public long BlockHeight { get; set; }
+        public int BlockHeight { get; set; }
 
         [JsonProperty("confirmations")]
         public int Confirmations { get; set; }
@@ -26,31 +23,31 @@ namespace BlockCypher.Objects {
         public bool DoubleSpend { get; set; }
 
         [JsonProperty("fees")]
-        public Satoshi Fees { get; set; }
+        public int Fees { get; set; }
 
         [JsonProperty("hash")]
         public string Hash { get; set; }
 
         [JsonProperty("inputs")]
-        public IList<Input> Inputs { get; set; }
+        public IList<UnsignedInput> Inputs { get; set; }
 
         [JsonProperty("lock_time")]
         public int LockTime { get; set; }
 
         [JsonProperty("outputs")]
-        public IList<Output> Outputs { get; set; }
+        public IList<UnsignedOutput> Outputs { get; set; }
 
         [JsonProperty("preference")]
         public string Preference { get; set; }
 
         [JsonProperty("received")]
-        public DateTime Received { get; set; }
+        public string Received { get; set; }
 
         [JsonProperty("relayed_by")]
         public string RelayedBy { get; set; }
 
         [JsonProperty("total")]
-        public Satoshi Total { get; set; }
+        public int Total { get; set; }
 
         [JsonProperty("ver")]
         public int Ver { get; set; }

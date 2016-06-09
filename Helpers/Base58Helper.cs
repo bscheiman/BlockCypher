@@ -7,48 +7,14 @@ using BlockCypher.Pcl;
 #endregion
 
 namespace BlockCypher.Helpers {
-    public class ArrayHelpers {
-        public static T[] ConcatArrays<T>(params T[][] arrays) {
-            var result = new T[arrays.Sum(arr => arr.Length)];
-
-            int offset = 0;
-
-            foreach (var arr in arrays) {
-                Buffer.BlockCopy(arr, 0, result, offset, arr.Length);
-                offset += arr.Length;
-            }
-
-            return result;
-        }
-
-        public static T[] ConcatArrays<T>(T[] arr1, T[] arr2) {
-            var result = new T[arr1.Length + arr2.Length];
-            Buffer.BlockCopy(arr1, 0, result, 0, arr1.Length);
-            Buffer.BlockCopy(arr2, 0, result, arr1.Length, arr2.Length);
-
-            return result;
-        }
-
-        public static T[] SubArray<T>(T[] arr, int start, int length) {
-            var result = new T[length];
-            Buffer.BlockCopy(arr, start, result, 0, length);
-
-            return result;
-        }
-
-        public static T[] SubArray<T>(T[] arr, int start) {
-            return SubArray(arr, start, arr.Length - start);
-        }
-    }
-
     public static class Base58Helper {
         public const int CheckSumSizeInBytes = 4;
 
         private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
         public static byte[] AddCheckSum(byte[] data) {
-            byte[] checkSum = GetCheckSum(data);
-            byte[] dataWithCheckSum = ArrayHelpers.ConcatArrays(data, checkSum);
+            var checkSum = GetCheckSum(data);
+            var dataWithCheckSum = ArrayHelpers.ConcatArrays(data, checkSum);
 
             return dataWithCheckSum;
         }
@@ -71,7 +37,7 @@ namespace BlockCypher.Helpers {
             int leadingZeroCount = s.ToCharArray().TakeWhile(c => c == '1').Count();
             var leadingZeros = Enumerable.Repeat((byte) 0, leadingZeroCount);
             var bytesWithoutLeadingZeros = intData.ToByteArray().Reverse() // to big endian
-                .SkipWhile(b => b == 0); //strip sign byte
+                                                  .SkipWhile(b => b == 0); //strip sign byte
             var result = leadingZeros.Concat(bytesWithoutLeadingZeros).ToArray();
             return result;
         }
@@ -89,12 +55,13 @@ namespace BlockCypher.Helpers {
 
         public static string Encode(byte[] data) {
             // Decode byte[] to BigInteger
-            BigInteger intData = data.Aggregate<byte, BigInteger>(0, (current, t) => current * 256 + t);
+            var intData = data.Aggregate<byte, BigInteger>(0, (current, t) => current * 256 + t);
 
             // Encode BigInteger to Base58 string
             string result = "";
+
             while (intData > 0) {
-                var remainder = (int) (intData % 58);
+                int remainder = (int) (intData % 58);
                 intData /= 58;
                 result = Digits[remainder] + result;
             }
@@ -111,8 +78,8 @@ namespace BlockCypher.Helpers {
         }
 
         private static byte[] GetCheckSum(byte[] data) {
-            byte[] hash1 = data.ToSHA256();
-            byte[] hash2 = hash1.ToSHA256();
+            var hash1 = data.ToSHA256();
+            var hash2 = hash1.ToSHA256();
 
             var result = new byte[CheckSumSizeInBytes];
             Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
@@ -121,9 +88,9 @@ namespace BlockCypher.Helpers {
         }
 
         public static byte[] VerifyAndRemoveCheckSum(byte[] data) {
-            byte[] result = ArrayHelpers.SubArray(data, 0, data.Length - CheckSumSizeInBytes);
-            byte[] givenCheckSum = ArrayHelpers.SubArray(data, data.Length - CheckSumSizeInBytes);
-            byte[] correctCheckSum = GetCheckSum(result);
+            var result = ArrayHelpers.SubArray(data, 0, data.Length - CheckSumSizeInBytes);
+            var givenCheckSum = ArrayHelpers.SubArray(data, data.Length - CheckSumSizeInBytes);
+            var correctCheckSum = GetCheckSum(result);
 
             return givenCheckSum.SequenceEqual(correctCheckSum) ? result : null;
         }

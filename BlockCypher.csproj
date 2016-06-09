@@ -37,20 +37,26 @@
     <Compile Include="Blockcypher.cs" />
     <Compile Include="Endpoint.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Helpers\ArrayHelpers.cs" />
     <Compile Include="Helpers\Base58Helper.cs" />
     <Compile Include="HookEvent.cs" />
     <Compile Include="Objects\AddressInfo.cs" />
-    <Compile Include="Objects\Balance.cs" />
+    <Compile Include="Objects\AddressBalance.cs" />
     <Compile Include="Objects\BaseObject.cs" />
     <Compile Include="Objects\BasicTransaction.cs" />
     <Compile Include="Objects\Faucet.cs" />
     <Compile Include="Objects\HookInfo.cs" />
+    <Compile Include="Objects\Input.cs" />
+    <Compile Include="Objects\Output.cs" />
     <Compile Include="Objects\Satoshi.cs" />
     <Compile Include="Objects\SatoshiConverter.cs" />
     <Compile Include="Objects\Transaction.cs" />
     <Compile Include="Objects\TxInput.cs" />
     <Compile Include="Objects\TxOutput.cs" />
     <Compile Include="Objects\TxReference.cs" />
+    <Compile Include="Objects\UnsignedInner.cs" />
+    <Compile Include="Objects\UnsignedInput.cs" />
+    <Compile Include="Objects\UnsignedOutput.cs" />
     <Compile Include="Objects\UnsignedTransaction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
